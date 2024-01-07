@@ -1,14 +1,19 @@
 package com.soloproject.shoppingmall.member.dto;
 
+import com.soloproject.shoppingmall.audit.Auditable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor
 @Getter
-public class MemberPatchDto {
+@Setter
+public class MemberPatchDto extends Auditable {
+
+    private long memberId;
 
     @NotBlank
     @Size(min = 2, max = 12, message = "이름은 2자 이상 12자 이하여야 합니다.")
