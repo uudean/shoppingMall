@@ -1,5 +1,6 @@
 package com.soloproject.shoppingmall.cart.controller;
 
+import com.soloproject.shoppingmall.cart.dto.CartPatchDto;
 import com.soloproject.shoppingmall.cart.dto.CartPostDto;
 import com.soloproject.shoppingmall.cart.dto.CartResponseDto;
 import com.soloproject.shoppingmall.cart.entity.Cart;
@@ -28,7 +29,19 @@ public class CartController {
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
     }
 
+    @PatchMapping
+    public ResponseEntity updateQuantity(@RequestBody CartPatchDto cartPatchDto) {
+        Cart cart = cartService.updateQuantity(cartPatchDto);
+        CartResponseDto response = cartMapper.cartToCartResponseDto(cart);
 
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{cartProduct_Id}")
+    public ResponseEntity deleteProduct(@PathVariable("cartProduct_Id") long cartProductId){
+        cartService.deleteProduct(cartProductId);
+        return ResponseEntity.ok("삭제 되었습니다.");
+    }
 
     @GetMapping
     public ResponseEntity getCart() {

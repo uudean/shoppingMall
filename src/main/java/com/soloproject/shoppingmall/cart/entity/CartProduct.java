@@ -19,7 +19,6 @@ public class CartProduct extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long cartProductId;
 
-//    @Min(value = 1, message = "수량은 최소 1개 이상 이어야 합니다.")
     private long quantity;
 
     @ManyToOne

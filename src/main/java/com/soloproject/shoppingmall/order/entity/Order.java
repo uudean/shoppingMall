@@ -30,7 +30,6 @@ public class Order extends Auditable {
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
-
     public void setMember(Member member) {
         this.member = member;
         if (!this.member.getOrders().contains(this)) {

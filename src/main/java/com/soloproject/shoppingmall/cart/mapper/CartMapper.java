@@ -21,6 +21,7 @@ public interface CartMapper {
     CartResponseDto cartToCartResponseDto(Cart cart);
 
     @Mapping(source = "product.productId",target = "productId")
+    @Mapping(source = "cartProduct.cartProductId",target = "cartProductId")
     CartProductResponseDto cartProductToCartProductResponseDto(CartProduct cartProduct);
 
     @Mapping(source = "product.productId",target = "productId")

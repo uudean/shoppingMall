@@ -2,6 +2,7 @@ package com.soloproject.shoppingmall.cart.entity;
 
 import com.soloproject.shoppingmall.audit.Auditable;
 import com.soloproject.shoppingmall.member.entity.Member;
+import com.soloproject.shoppingmall.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,8 +30,7 @@ public class Cart extends Auditable {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "cart",cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.PERSIST)
     private List<CartProduct> cartProducts = new ArrayList<>();
-
 
 }
