@@ -16,5 +16,5 @@ public class CartPostDto {
     private long productId;
 
     @Min(value = 1, message = "수량은 최소 1개 이상입니다.")
-    private long quantity;
+    private int quantity;
 }

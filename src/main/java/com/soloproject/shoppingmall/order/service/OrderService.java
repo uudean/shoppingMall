@@ -33,7 +33,7 @@ public class OrderService {
 
     public Order createOrder(OrderPostDto orderPostDto) {
 
-        long totalPrice = calculateTotalPrice(orderPostDto);
+        int totalPrice = calculateTotalPrice(orderPostDto);
         Order order = orderMapper.orderPostDtoToOrder(orderPostDto);
         order.setTotalPrice(totalPrice);
 
@@ -43,7 +43,7 @@ public class OrderService {
     public Order cartOrder(long cartId) {
 
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CART_EMPTY));
-        long totalPrice = cart.getTotalPrice();
+        int totalPrice = cart.getTotalPrice();
 
         Order order = new Order();
 
@@ -71,16 +71,21 @@ public class OrderService {
     }
 
 
-    public long calculateTotalPrice(OrderPostDto orderPostDto) {
+    public int calculateTotalPrice(OrderPostDto orderPostDto) {
 
         List<OrderProductDto> orderProductDtos = orderPostDto.getOrderProducts();
-        List<Long> quantity = orderProductDtos.stream().map(OrderProductDto::getQuantity).toList();
+        List<Integer> quantity = orderProductDtos.stream().map(OrderProductDto::getQuantity).toList();
 
         List<Long> productIds = orderProductDtos.stream().map(OrderProductDto::getProductId).toList();
         List<Product> products = productRepository.findAllById(productIds);
 
-        long totalPrice = IntStream.range(0, quantity.size())
-                .mapToLong(i -> products.get(i).getPrice() * quantity.get(i)).sum();
+        int totalPrice = IntStream.range(0, quantity.size())
+                .map(i->
+                {
+                    Product product = products.get(i);
+                    int price = product.getPrice();
+                    return price * quantity.get(i);
+                }).sum();
 
         return totalPrice;
     }

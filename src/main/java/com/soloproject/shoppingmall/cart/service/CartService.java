@@ -48,7 +48,7 @@ public class CartService {
 
             newCart.setMember(loginMember);
 
-            long totalPrice = product.getPrice() * cartPostDto.getQuantity();
+            int totalPrice = product.getPrice() * cartPostDto.getQuantity();
 
             newCart.setTotalPrice(totalPrice);
 
@@ -69,12 +69,12 @@ public class CartService {
 //            장바구니에 존재하는 상품을 장바구니에 담는경우
             if (existProductInCartProduct.isPresent()) {
                 CartProduct cartProduct = existProductInCartProduct.get();
-                long newQuantity = cartProduct.getQuantity() + cartPostDto.getQuantity();
+                int newQuantity = cartProduct.getQuantity() + cartPostDto.getQuantity();
 
                 cartProduct.setQuantity(newQuantity);
                 cartProductRepository.save(cartProduct);
 
-                long newTotalPrice = calculateTotalPrice(cart.getCartId());
+                int newTotalPrice = calculateTotalPrice(cart.getCartId());
 
                 cart.setTotalPrice(newTotalPrice);
                 cartRepository.save(cart);
@@ -88,7 +88,7 @@ public class CartService {
                 newCartProduct.setCart(cart);
                 cartProductRepository.save(newCartProduct);
 
-                long newTotalPrice = calculateTotalPrice(cart.getCartId());
+                int newTotalPrice = calculateTotalPrice(cart.getCartId());
 
                 cart.setTotalPrice(newTotalPrice);
 
@@ -127,7 +127,7 @@ public class CartService {
 
         cartProduct.setQuantity(cartPatchDto.getQuantity());
 
-        long newTotalPrice = calculateTotalPrice(cart.getCartId());
+        int newTotalPrice = calculateTotalPrice(cart.getCartId());
 
         cart.setTotalPrice(newTotalPrice);
 
@@ -145,23 +145,23 @@ public class CartService {
 
         cartProductRepository.delete(cartProduct);
 
-        long newTotalPrice = calculateTotalPrice(cart.getCartId());
+        int newTotalPrice = calculateTotalPrice(cart.getCartId());
 
         cart.setTotalPrice(newTotalPrice);
         cartRepository.save(cart);
     }
 
-    public long calculateTotalPrice(long cartId) {
+    public int calculateTotalPrice(long cartId) {
 
         List<CartProduct> cartProducts = cartProductRepository.findAllByCart_CartId(cartId);
-        long totalPrice = 0;
+        int totalPrice = 0;
 
         for (CartProduct cartProduct : cartProducts) {
             long productId = cartProduct.getProduct().getProductId();
-            long quantity = cartProduct.getQuantity();
+            int quantity = cartProduct.getQuantity();
 
-            long productPrice = productRepository.findById(productId).orElseThrow().getPrice();
-            long price = productPrice * quantity;
+            int productPrice = productRepository.findById(productId).orElseThrow().getPrice();
+            int price = productPrice * quantity;
             totalPrice = totalPrice + price;
 
         }

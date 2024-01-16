@@ -19,7 +19,8 @@ public class CartProduct extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long cartProductId;
 
-    private long quantity;
+    @Column(nullable = false)
+    private int quantity;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

@@ -11,5 +11,5 @@ import lombok.Setter;
 @Setter
 public class OrderProductResponseDto {
     private long productId;
-    private long quantity;
+    private int quantity;
 }

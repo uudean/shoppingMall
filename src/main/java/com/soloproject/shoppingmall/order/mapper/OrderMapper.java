@@ -2,16 +2,13 @@ package com.soloproject.shoppingmall.order.mapper;
 
 import com.soloproject.shoppingmall.member.entity.Member;
 import com.soloproject.shoppingmall.order.dto.OrderPostDto;
-import com.soloproject.shoppingmall.order.dto.OrderProductDto;
 import com.soloproject.shoppingmall.order.dto.OrderProductResponseDto;
 import com.soloproject.shoppingmall.order.dto.OrderResponseDto;
 import com.soloproject.shoppingmall.order.entity.Order;
 import com.soloproject.shoppingmall.order.entity.OrderProduct;
-import com.soloproject.shoppingmall.product.dto.ProductResponseDto;
 import com.soloproject.shoppingmall.product.entity.Product;
 import com.soloproject.shoppingmall.product.mapper.ProductMapper;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.ArrayList;
 import java.util.List;

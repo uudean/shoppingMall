@@ -21,7 +21,10 @@ public class Order extends Auditable {
     private long orderId;
 
     @Column(nullable = false)
-    private long totalPrice;
+    private int totalPrice;
+
+    @Column(nullable = false)
+    private OrderStatus orderStatus;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -34,6 +37,22 @@ public class Order extends Auditable {
         this.member = member;
         if (!this.member.getOrders().contains(this)) {
             this.member.getOrders().add(this);
+        }
+    }
+
+    public enum OrderStatus{
+        ORDER_REQUEST(1,"결제 대기중"),
+        ORDER_COMPLETE(2,"결제 완료");
+
+        @Getter
+        private int step;
+
+        @Getter
+        private String description;
+
+        OrderStatus(int step, String description) {
+            this.step = step;
+            this.description = description;
         }
     }
 }

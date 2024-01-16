@@ -18,7 +18,7 @@ public class OrderProduct extends Auditable {
     private long orderProductId;
 
     @Min(value = 1, message = "수량은 최소 1개 이상이어야 합니다.")
-    private long quantity;
+    private int quantity;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

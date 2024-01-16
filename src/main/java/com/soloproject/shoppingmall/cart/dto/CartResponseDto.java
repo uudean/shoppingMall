@@ -13,6 +13,6 @@ import java.util.List;
 public class CartResponseDto extends Auditable {
     private long cartId;
     private long memberId;
-    private long totalPrice;
+    private int totalPrice;
     private List<CartProductResponseDto> cartProducts;
 }
