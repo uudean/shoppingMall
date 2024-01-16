@@ -1,5 +1,6 @@
 package com.soloproject.shoppingmall.image.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.soloproject.shoppingmall.audit.Auditable;
 import com.soloproject.shoppingmall.product.entity.Product;
 import jakarta.persistence.*;
