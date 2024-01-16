@@ -1,5 +1,6 @@
 package com.soloproject.shoppingmall.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.soloproject.shoppingmall.audit.Auditable;
 import com.soloproject.shoppingmall.cart.entity.CartProduct;
 import com.soloproject.shoppingmall.image.entity.Image;
@@ -29,18 +30,26 @@ public class Product extends Auditable {
     private String description;
 
     @Column(nullable = false)
-    private long price;
+    private int price;
 
     @Column(nullable = false)
-    private long stock;
+    private int stock;
+
+    @Column(nullable = false)
+    private int totalSales;
+
+    @Column(nullable = false)
+    private long views;
 
     @OneToMany(mappedBy = "product")
     private List<Image> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
     private List<CartProduct> cartProducts = new ArrayList<>();
 
     public void setOrderProduct(OrderProduct orderProduct) {

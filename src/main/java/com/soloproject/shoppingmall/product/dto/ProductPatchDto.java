@@ -6,10 +6,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductPatchDto {
-
     private long productId;
     private String name;
     private String description;
-    private long price;
-    private long stock;
+    private int price;
+    private int stock;
 }

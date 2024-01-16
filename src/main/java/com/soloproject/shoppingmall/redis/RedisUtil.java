@@ -3,6 +3,7 @@ package com.soloproject.shoppingmall.redis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,14 @@ public class RedisUtil {
 
     public void set(String key, Object object, long minutes) {
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(object.getClass()));
-        redisTemplate.opsForValue().set(key, object, minutes, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, object, minutes, TimeUnit.MINUTES);
+    }
+
+    public void setIncrement(String key, long num) {
+
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.opsForValue().increment(key, num);
+
     }
 
     public Object get(String key) {
