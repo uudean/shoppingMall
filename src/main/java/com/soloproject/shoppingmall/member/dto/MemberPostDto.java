@@ -1,6 +1,7 @@
 package com.soloproject.shoppingmall.member.dto;
 
 import com.soloproject.shoppingmall.audit.Auditable;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -12,7 +13,7 @@ import lombok.Getter;
 public class MemberPostDto extends Auditable {
 
     @NotBlank
-    @Pattern(regexp = "^[a-zZA-Z0-9._&+-]*@[a-zA-Z0-9.-]+\\.[a-zA-Z]+$",message = "올바른 형식의 이메일을 입력해주세요")
+    @Email(message = "올바른 형식의 이메일을 입력해주세요" )
     private String email;
 
     @NotBlank

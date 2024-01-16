@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +24,9 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String setFromEmail;
 
-    public void joinEmail(String email) throws Exception {
+    @Async
+    public void joinEmail(String setToEmail) throws Exception {
         createRandomNum();
-        String setToEmail = email;
         String title = "회원 가입 인증 메일 입니다.";
         String content =
                 "회원 가입을 환영 합니다." +
@@ -36,6 +37,17 @@ public class MailService {
         mailSend(setFromEmail, setToEmail, title, content);
 
     }
+    @Async
+    public void findPassword(String setToEmail) throws Exception{
+        createRandomNum();
+        String title = "비밀번호 찾기 인증번호 입니다.";
+        String content =
+                        "인증 번호는 " + authNum + " 입니다." +
+                        "<br>";
+
+        mailSend(setFromEmail, setToEmail,title,content);
+    }
+
 
     public void mailSend(String setFromEmail, String setToEmail, String title, String content) throws Exception {
         MimeMessage message = javaMailSender.createMimeMessage();

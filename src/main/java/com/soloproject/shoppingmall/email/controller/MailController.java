@@ -18,7 +18,14 @@ public class MailController {
     @PostMapping("/mail")
     public String mailCheck(@RequestBody MailDto mailDto) throws Exception {
         mailService.joinEmail(mailDto.getEmail());
-        log.info("# 인증 번호 메일 전송 완료 ");
+        log.info("# 인증 번호 메일 전송 완료 : {}", mailDto.getEmail());
+        return "인증 번호 메일 전송 완료";
+    }
+
+    @PostMapping("/findPassword")
+    public String mail(@RequestBody MailDto mailDto) throws Exception{
+        mailService.findPassword(mailDto.getEmail());
+        log.info("# 인증 번호 메일 전송 완료 : {}", mailDto.getEmail());
         return "인증 번호 메일 전송 완료";
     }
 }

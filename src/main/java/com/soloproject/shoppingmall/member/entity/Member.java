@@ -39,10 +39,10 @@ public class Member extends Auditable {
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member",fetch = FetchType.LAZY)
     private List<Order> orders = new ArrayList<>();
 
-    @OneToOne(mappedBy = "member",cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
+    @OneToOne(mappedBy = "member",cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
     private Cart cart;
 
     public enum MemberRole {

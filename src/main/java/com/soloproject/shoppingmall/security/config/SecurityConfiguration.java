@@ -45,7 +45,10 @@ public class SecurityConfiguration {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(new AntPathRequestMatcher("/member/signup/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/member/email/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/member/**")).authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/order/**")).authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/cart/**")).authenticated()
                         .anyRequest().permitAll())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

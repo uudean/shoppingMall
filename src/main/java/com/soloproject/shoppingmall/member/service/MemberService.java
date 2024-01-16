@@ -4,6 +4,7 @@ import com.soloproject.shoppingmall.exception.BusinessLogicException;
 import com.soloproject.shoppingmall.exception.ExceptionCode;
 import com.soloproject.shoppingmall.member.entity.Member;
 import com.soloproject.shoppingmall.member.repository.MemberRepository;
+import com.soloproject.shoppingmall.redis.RedisUtil;
 import com.soloproject.shoppingmall.security.AuthUtils;
 import com.soloproject.shoppingmall.security.CustomAuthorityUtils;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -21,9 +24,9 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomAuthorityUtils authorityUtils;
+    private final RedisUtil redisUtil;
 
     //    회원 가입
-    @Transactional
     public Member createMember(Member member) {
 
         verifyExistEmail(member.getEmail());
@@ -31,14 +34,10 @@ public class MemberService {
         String encryptedPassword = passwordEncoder.encode(member.getPassword());
         member.setPassword(encryptedPassword);
 
-        List<String> roles = authorityUtils.createRoles(member.getEmail());
-        member.setRoles(roles);
-
         return memberRepository.save(member);
     }
 
     //    회원 정보 수정
-    @Transactional
     public Member updateMember(Member member) {
 
         Member findMember = findVerifiedMember(member.getMemberId());
@@ -51,13 +50,37 @@ public class MemberService {
 
         return memberRepository.save(findMember);
     }
-    // 회원 탈퇴
-    @Transactional(readOnly = true)
-    public Member findMember(long memberId){
-        Member member = memberRepository.findById(memberId).orElseThrow(()->new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
-        return member;
+
+    //  회원가입 이메일 인증
+    public void emailAuth(String email, int authNum) {
+
+        boolean emailAuth = emailAuthenticate(email, authNum);
+
+        // 인증 성공 시 권한 부여
+        if (emailAuth) {
+
+            Member member = memberRepository.findByEmail(email).orElseThrow();
+            List<String> roles = new ArrayList<>(authorityUtils.createRoles(member.getEmail()));
+            member.setRoles(roles);
+            memberRepository.save(member);
+
+        } else throw new BusinessLogicException(ExceptionCode.AUTH_CODE_DOES_NOT_MATCH);
     }
 
+    // 이메일 인증 번호 일치 하는지 확인
+    public boolean emailAuthenticate(String email, int authNum) {
+
+        int object = Integer.parseInt(redisUtil.get("AuthNumber : " + email).toString());
+
+        if (object == authNum) {
+
+            redisUtil.delete("AuthNumber : " + email);
+            return true;
+
+        } else return false;
+    }
+
+    // 회원 탈퇴
     @Transactional
     public void deleteMember(long memberId) {
 
@@ -65,7 +88,7 @@ public class MemberService {
 
     }
 
-    // 존재하는 이메일인지 확인하는 메서드
+    // 존재하는 이메일인지 확인
     private void verifyExistEmail(String email) {
 
         Optional<Member> findMember = memberRepository.findByEmail(email);
@@ -77,15 +100,33 @@ public class MemberService {
         }
     }
 
+    //    비밀번호 찾기
+    @Transactional
+    public void findPassword(String email, int authNum, String newPassword) {
+
+        boolean auth = emailAuthenticate(email, authNum);
+        if (auth) {
+            Member member = memberRepository.findByEmail(email).orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+            String encodePassword = passwordEncoder.encode(newPassword);
+            member.setPassword(encodePassword);
+            memberRepository.save(member);
+        } else throw new BusinessLogicException(ExceptionCode.AUTH_CODE_DOES_NOT_MATCH);
+    }
+
     public Member findVerifiedMember(long memberId) {
 
         Optional<Member> optionalMember = memberRepository.findById(memberId);
-        Member findMember = optionalMember.orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_EXIST));
+        Member findMember = optionalMember.orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
         return findMember;
 
     }
 
-    public Member getLoginUser(){
+    public Member findMember(long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+        return member;
+    }
+
+    public Member getLoginUser() {
         return memberRepository.findByEmail(AuthUtils.getAuthUser().getName()).orElseThrow();
     }
 }
