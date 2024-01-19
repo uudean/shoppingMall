@@ -7,13 +7,13 @@ import com.soloproject.shoppingmall.product.repository.ProductRepository;
 import com.soloproject.shoppingmall.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,9 +28,8 @@ import java.util.*;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final RedisUtil redisUtil;
     private final ProductMapper productMapper;
-    private final RedisTemplate redisTemplate;
+    private final RedisUtil redisUtil;
 
     @Transactional
     public Product createProduct(Product product) {
@@ -38,6 +37,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @CacheEvict(cacheNames = "ProductCache",cacheManager = "RedisCacheManager",allEntries = true)
     @Transactional
     public Product updateProduct(Product product) {
 
@@ -52,6 +52,7 @@ public class ProductService {
         return productRepository.save(findProduct);
 
     }
+
     // 상품 조회 캐시사용
     @Cacheable(value = "ProductCache", cacheManager = "RedisCacheManager")
     @Transactional
@@ -61,10 +62,9 @@ public class ProductService {
 
         ProductResponseDto response = productMapper.productToProductResponseDto(product);
 
-        viewCount(productId);
-
         return response;
     }
+
     // 조회 할때 마다 Redis view + 1 씩 증가
     @Async
     public void viewCount(long productId) {
@@ -76,18 +76,20 @@ public class ProductService {
     }
 
     // 30분 마다 조회수 DB 반영
-    @Scheduled(cron = "0 */30 * * * *",zone = "Asia/Seoul")
+    @CacheEvict(cacheNames = "ProductCache",cacheManager = "RedisCacheManager",allEntries = true)
+    @Scheduled(cron = "0 */30 * * * *", zone = "Asia/Seoul")
     @Transactional
     public void addViewCount() {
 
-        ScanOptions scanOptions = ScanOptions.scanOptions().match("ProductView*").build();
-        Cursor<byte[]> keys = redisTemplate.getConnectionFactory().getConnection().scan(scanOptions);
+        String pattern = "ProductView*";
 
-        while (keys.hasNext()){
+        Cursor<byte[]> keys = redisUtil.getScanKeys(pattern);
 
-           byte[] keyByte = keys.next();
-           String key = new String(keyByte);
-            long productId = Long.parseLong(key.replace("ProductView : ",""));
+        while (keys.hasNext()) {
+
+            byte[] keyByte = keys.next();
+            String key = new String(keyByte);
+            long productId = Long.parseLong(key.replace("ProductView : ", ""));
             Product product = productRepository.findById(productId).orElseThrow();
             Object value = redisUtil.get(key);
             long viewCount = Long.parseLong(value.toString());
@@ -97,6 +99,7 @@ public class ProductService {
 
             redisUtil.delete(key);
         }
+        keys.close();
         log.info("조회 수 수정이 완료 되었습니다. ");
     }
 

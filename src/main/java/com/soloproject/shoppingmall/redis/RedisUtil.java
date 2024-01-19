@@ -1,7 +1,9 @@
 package com.soloproject.shoppingmall.redis;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,14 @@ public class RedisUtil {
         redisTemplate.setValueSerializer(new StringRedisSerializer());
         redisTemplate.opsForValue().increment(key, num);
 
+    }
+
+    public Cursor<byte[]> getScanKeys(String pattern){
+
+        ScanOptions scanOptions = ScanOptions.scanOptions().match("ProductView*").build();
+        Cursor<byte[]> keys = redisTemplate.getConnectionFactory().getConnection().scan(scanOptions);
+
+        return keys;
     }
 
     public Object get(String key) {

@@ -51,6 +51,7 @@ public class ProductController {
     public ResponseEntity getProduct(@PathVariable("product-id") long productId) {
 
         ProductResponseDto response = productService.getProduct(productId);
+        productService.viewCount(productId);
 
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
