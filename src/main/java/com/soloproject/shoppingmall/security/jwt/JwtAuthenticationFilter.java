@@ -80,7 +80,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String accessToken = jwtTokenizer.generateAccessToken(claims,subject,expiration,base64EncodedSecretKey);
 
-        redisUtil.set("AccessToken : "+member.getEmail(),accessToken,expiration.getTime());
+        redisUtil.set("AccessToken : "+member.getEmail(),accessToken,jwtTokenizer.getAccessTokenExpirationMinutes());
 
         return accessToken;
     }
@@ -101,7 +101,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String refreshToken = jwtTokenizer.generateRefreshToken(claims,subject,expiration,base64EncodedSecretKey);
 
-        redisUtil.set("RefreshToken : "+member.getEmail(),refreshToken,expiration.getTime());
+        redisUtil.set("RefreshToken : "+member.getEmail(),refreshToken, jwtTokenizer.getRefreshTokenExpirationMinutes());
 
         return refreshToken;
     }

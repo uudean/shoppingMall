@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class CustomAuthorityUtils {
 
-    @Value("${mail.address.email}")
+    @Value("${mail.address.adminEmail}")
     private String adminEmail;
 
     private final List<GrantedAuthority> ADMIN_ROLES = AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ROLE_USER");

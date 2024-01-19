@@ -1,19 +1,20 @@
 package com.soloproject.shoppingmall.security;
 
-import com.soloproject.shoppingmall.exception.BusinessLogicException;
-import com.soloproject.shoppingmall.exception.ExceptionCode;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class AuthUtils {
 
-    public static Authentication getAuthUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public static String getAuthUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (authentication.getName() == null) {
-            throw new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND);
+        if (principal instanceof UserDetails) {
+            String username = ((UserDetails) principal).getUsername();
+            return username;
+
+        } else {
+            String username = principal.toString();
+            return username;
         }
-        authentication.getPrincipal();
-        return authentication;
     }
 }
