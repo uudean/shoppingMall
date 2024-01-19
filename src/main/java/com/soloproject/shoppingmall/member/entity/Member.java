@@ -2,6 +2,7 @@ package com.soloproject.shoppingmall.member.entity;
 
 import com.soloproject.shoppingmall.audit.Auditable;
 import com.soloproject.shoppingmall.cart.entity.Cart;
+import com.soloproject.shoppingmall.like.entity.Like;
 import com.soloproject.shoppingmall.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,11 +40,14 @@ public class Member extends Auditable {
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Order> orders = new ArrayList<>();
 
-    @OneToOne(mappedBy = "member",cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private Cart cart;
+
+    @OneToMany(mappedBy = "member", cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
+    private List<Like> likes = new ArrayList<>();
 
     public enum MemberRole {
         ROLE_USER,
