@@ -35,6 +35,8 @@ public interface OrderMapper {
                 }).collect(Collectors.toList());
         order.setMember(member);
         order.setOrderProducts(orderProducts);
+        order.setOrderStatus(order.getOrderStatus());
+        order.setTotalPrice(order.getTotalPrice());
 
         return order;
     }
@@ -45,7 +47,6 @@ public interface OrderMapper {
             return null;
         }
 
-
         OrderResponseDto orderResponseDto = new OrderResponseDto();
         orderResponseDto.setMemberId(order.getMember().getMemberId());
         orderResponseDto.setCreatedAt(order.getCreatedAt());
@@ -53,6 +54,7 @@ public interface OrderMapper {
         orderResponseDto.setOrderId(order.getOrderId());
         orderResponseDto.setOrderProducts(orderProductListToOrderProductResponseDtoList(order.getOrderProducts()));
         orderResponseDto.setTotalPrice(order.getTotalPrice());
+        orderResponseDto.setOrderStatus(order.getOrderStatus());
 
         return orderResponseDto;
     }

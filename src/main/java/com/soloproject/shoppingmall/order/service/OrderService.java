@@ -28,14 +28,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final OrderMapper orderMapper;
     private final CartRepository cartRepository;
 
-    public Order createOrder(OrderPostDto orderPostDto) {
+    public Order createOrder(Order order) {
 
-        int totalPrice = calculateTotalPrice(orderPostDto);
-        Order order = orderMapper.orderPostDtoToOrder(orderPostDto);
+        int totalPrice = calculateTotalPrice(order);
         order.setTotalPrice(totalPrice);
+        order.setOrderStatus(Order.OrderStatus.ORDER_REQUEST);
 
         return orderRepository.save(order);
     }
@@ -64,6 +63,7 @@ public class OrderService {
 
         order.setOrderProducts(orderProducts);
         order.setTotalPrice(totalPrice);
+        order.setOrderStatus(Order.OrderStatus.ORDER_REQUEST);
 
         orderRepository.save(order);
 
@@ -71,12 +71,12 @@ public class OrderService {
     }
 
 
-    public int calculateTotalPrice(OrderPostDto orderPostDto) {
+    public int calculateTotalPrice(Order order) {
 
-        List<OrderProductDto> orderProductDtos = orderPostDto.getOrderProducts();
-        List<Integer> quantity = orderProductDtos.stream().map(OrderProductDto::getQuantity).toList();
+        List<OrderProduct> orderProducts = order.getOrderProducts();
+        List<Integer> quantity = orderProducts.stream().map(OrderProduct::getQuantity).toList();
 
-        List<Long> productIds = orderProductDtos.stream().map(OrderProductDto::getProductId).toList();
+        List<Long> productIds = orderProducts.stream().map(orderProduct -> orderProduct.getProduct().getProductId()).toList();
         List<Product> products = productRepository.findAllById(productIds);
 
         int totalPrice = IntStream.range(0, quantity.size())
