@@ -127,6 +127,6 @@ public class MemberService {
     }
 
     public Member getLoginUser() {
-        return memberRepository.findByEmail(AuthUtils.getAuthUser().getName()).orElseThrow();
+        return memberRepository.findByEmail(AuthUtils.getAuthUser()).orElseThrow(()->new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
     }
 }
