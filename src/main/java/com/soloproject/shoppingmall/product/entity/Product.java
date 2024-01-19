@@ -41,6 +41,9 @@ public class Product extends Auditable {
     @Column(nullable = false)
     private long views;
 
+    @Column(nullable = false)
+    private long likeCount;
+
     @OneToMany(mappedBy = "product")
     private List<Image> images = new ArrayList<>();
 
