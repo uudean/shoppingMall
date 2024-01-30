@@ -1,6 +1,7 @@
 package com.soloproject.shoppingmall.product.dto;
 
 import com.soloproject.shoppingmall.audit.Auditable;
+import com.soloproject.shoppingmall.product.entity.Product;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +14,9 @@ public class ProductPostDto extends Auditable {
     private String name;
 
     @NotNull
+    private Product.Category category;
+
+    @NotNull
     private String description;
 
     @NotNull
@@ -20,5 +24,4 @@ public class ProductPostDto extends Auditable {
 
     @NotNull
     private int stock;
-
 }

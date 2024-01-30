@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,9 +26,10 @@ public class ProductController {
     private final ProductMapper productMapper;
 
     @PostMapping("/create")
-    public ResponseEntity createProduct(@RequestBody ProductPostDto productPostDto) {
+    public ResponseEntity createProduct(@RequestPart ProductPostDto productPostDto,
+                                        @RequestPart List<MultipartFile> images) {
 
-        Product product = productService.createProduct(productMapper.productPostDtoToProduct(productPostDto));
+        Product product = productService.createProduct(productMapper.productPostDtoToProduct(productPostDto),images);
         ProductResponseDto response = productMapper.productToProductResponseDto(product);
 
         return new ResponseEntity<>(new SingleResponseDto(response), HttpStatus.CREATED);
@@ -61,6 +63,18 @@ public class ProductController {
                                       @RequestParam int size) {
 
         Page<Product> productPage = productService.getProducts(page - 1, size);
+        List<ProductResponseDto> response = productMapper.productToProductResponseDtos(productPage.getContent());
+
+        return new ResponseEntity<>(new MultiResponseDto<>((response), productPage), HttpStatus.OK);
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity getCategoryProducts(@RequestParam int page,
+                                              @RequestParam int size,
+                                              @RequestParam int type,
+                                              @RequestParam(value = "category") Product.Category category) throws Exception {
+
+        Page<Product> productPage = productService.getCategoryProducts(page - 1, size, type, category);
         List<ProductResponseDto> response = productMapper.productToProductResponseDtos(productPage.getContent());
 
         return new ResponseEntity<>(new MultiResponseDto<>((response), productPage), HttpStatus.OK);

@@ -5,6 +5,7 @@ import com.soloproject.shoppingmall.audit.Auditable;
 import com.soloproject.shoppingmall.cart.entity.CartProduct;
 import com.soloproject.shoppingmall.image.entity.Image;
 import com.soloproject.shoppingmall.order.entity.OrderProduct;
+import com.soloproject.shoppingmall.review.entity.Review;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,21 +45,44 @@ public class Product extends Auditable {
     @Column(nullable = false)
     private long likeCount;
 
-    @OneToMany(mappedBy = "product")
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Category category;
+
+    @OneToMany(mappedBy = "product",cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     private List<Image> images = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<CartProduct> cartProducts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private List<Review> reviews = new ArrayList<>();
 
     public void setOrderProduct(OrderProduct orderProduct) {
         this.orderProducts.add(orderProduct);
         if (orderProduct.getProduct() != this) {
             orderProduct.setProduct(this);
         }
+    }
+
+    @Getter
+    public enum Category {
+        OUTER("아우터"),
+        TOP("상의"),
+        BOTTOM("하의"),
+        SHOES("신발"),
+        ACC("액세서리");
+
+        private String title;
+
+        Category(String title) {
+            this.title = title;
+        }
+
     }
 }

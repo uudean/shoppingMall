@@ -7,7 +7,6 @@ import com.soloproject.shoppingmall.product.dto.ProductPostDto;
 import com.soloproject.shoppingmall.product.dto.ProductResponseDto;
 import com.soloproject.shoppingmall.product.entity.Product;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,23 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    Product productPostDtoToProduct(ProductPostDto productPostDto);
+    default Product productPostDtoToProduct(ProductPostDto productPostDto){
+        if ( productPostDto == null ) {
+            return null;
+        }
+
+        Product product = new Product();
+
+        product.setCreatedAt( productPostDto.getCreatedAt() );
+        product.setModifiedAt( productPostDto.getModifiedAt() );
+        product.setName( productPostDto.getName() );
+        product.setDescription( productPostDto.getDescription() );
+        product.setPrice( productPostDto.getPrice() );
+        product.setStock( productPostDto.getStock() );
+        product.setCategory( productPostDto.getCategory() );
+
+        return product;
+    }
 
     Product productPatchDtoToProduct(ProductPatchDto productPatchDto);
 
@@ -30,6 +45,7 @@ public interface ProductMapper {
         productResponseDto.setCreatedAt(product.getCreatedAt());
         productResponseDto.setModifiedAt(product.getModifiedAt());
         productResponseDto.setProductId(product.getProductId());
+        productResponseDto.setCategory(product.getCategory());
         productResponseDto.setName(product.getName());
         productResponseDto.setDescription(product.getDescription());
         productResponseDto.setPrice(product.getPrice());
