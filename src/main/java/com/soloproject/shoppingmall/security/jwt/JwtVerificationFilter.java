@@ -1,5 +1,7 @@
 package com.soloproject.shoppingmall.security.jwt;
 
+import com.soloproject.shoppingmall.exception.BusinessLogicException;
+import com.soloproject.shoppingmall.exception.ExceptionCode;
 import com.soloproject.shoppingmall.redis.RedisUtil;
 import com.soloproject.shoppingmall.security.CustomAuthorityUtils;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -16,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +41,25 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
         } catch (SignatureException e) {
             request.setAttribute("exception", e);
         } catch (ExpiredJwtException e) {
-            request.setAttribute("exception", e);
+            // 리프레시 토큰 검증
+            Map<String, Object> claims = verifyRefreshToken(request);
+            // 검증에 통과하면
+            if (claims != null) {
+
+                String email = (String) claims.get("email");
+                Date actExpirationTime = jwtTokenizer.getTokenExpiration(jwtTokenizer.getAccessTokenExpirationMinutes());
+                String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
+
+                String newAccessToken = "Bearer " + jwtTokenizer.generateAccessToken(claims, email, actExpirationTime, base64EncodedSecretKey);
+                redisUtil.set("AccessToken : " + email, newAccessToken, jwtTokenizer.getAccessTokenExpirationMinutes());
+
+                setAuthenticationToContext(claims);
+
+                response.setHeader("Authorization", newAccessToken);
+            } else {
+                // 검증에 실패했을 경우
+                request.setAttribute("만료된 토큰입니다.", e);
+            }
         } catch (Exception e) {
             request.setAttribute("exception", e);
         }
@@ -56,7 +77,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
     }
 
-    public Map<String, Object> verifyJws(HttpServletRequest request) throws Exception {
+    public Map<String, Object> verifyJws(HttpServletRequest request) {
 
         String jws = request.getHeader("Authorization").replace("Bearer ", "");
         String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
@@ -66,8 +87,19 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
         String redisJwt = (String) redisUtil.get("AccessToken : " + claims.get("email"));
         if (jws.equals(redisJwt)) {
             return claims;
-        } else throw new Exception();
+        } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+    }
 
+    public Map<String, Object> verifyRefreshToken(HttpServletRequest request) {
+
+        String refreshToken = request.getHeader("Refresh");
+        String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
+        Map<String, Object> claims = jwtTokenizer.getClaims(refreshToken, base64EncodedSecretKey).getBody();
+
+        String redisRefreshToken = (String) redisUtil.get("RefreshToken : " + claims.get("email"));
+        if (refreshToken.equals(redisRefreshToken)) {
+            return claims;
+        } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
     }
 
     private void setAuthenticationToContext(Map<String, Object> claims) {
