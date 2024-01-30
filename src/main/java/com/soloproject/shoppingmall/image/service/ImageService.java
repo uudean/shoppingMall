@@ -7,7 +7,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.soloproject.shoppingmall.image.entity.Image;
 import com.soloproject.shoppingmall.image.repository.ImageRepository;
 import com.soloproject.shoppingmall.product.entity.Product;
-import com.soloproject.shoppingmall.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,6 @@ import java.util.UUID;
 public class ImageService {
 
     private final ImageRepository imageRepository;
-    private final ProductRepository productRepository;
 
     @Autowired
     private AmazonS3 amazonS3;
@@ -37,9 +35,9 @@ public class ImageService {
     private String bucket;
 
     @Transactional
-    public List<String> uploadImage(List<MultipartFile> multipartFiles, long productId) throws IOException {
+    public List<Image> uploadImage(List<MultipartFile> multipartFiles, Product product) {
 
-        List<String> fileNameList = new ArrayList<>();
+        List<Image> images = new ArrayList<>();
 
         String dirName = "image/";
 
@@ -54,14 +52,13 @@ public class ImageService {
 
             String bucketUrl = amazonS3.getUrl(bucket, folder).toString();
 
-            Product product = productRepository.findById(productId).orElseThrow();
-
             Image image = Image.builder()
                     .imageName(fileName)
                     .originalName(file.getOriginalFilename())
                     .url(bucketUrl)
                     .product(product)
                     .build();
+
             imageRepository.save(image);
 
             try (InputStream inputStream = file.getInputStream()) {
@@ -70,10 +67,9 @@ public class ImageService {
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            fileNameList.add(fileName);
+            images.add(image);
         }
-        return fileNameList;
+        return images;
     }
 
     private String createFileName(String fileName) {

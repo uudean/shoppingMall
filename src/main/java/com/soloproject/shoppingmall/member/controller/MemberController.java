@@ -18,8 +18,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @EnableAsync
 @Slf4j
 @Validated
@@ -40,9 +38,9 @@ public class MemberController {
     }
 
     @PostMapping("/email")
-    public String authEmail(@RequestBody EmailAuthDto.signup emailAuthDto){
+    public String authEmail(@RequestBody EmailAuthDto.signup emailAuthDto) {
 
-        memberService.emailAuth(emailAuthDto.getEmail(),emailAuthDto.getAuthNumber());
+        memberService.emailAuth(emailAuthDto.getEmail(), emailAuthDto.getAuthNumber());
 
         return "인증 되었습니다.";
     }
@@ -67,16 +65,16 @@ public class MemberController {
     }
 
     @PostMapping("/findPasword")
-    public String findPassword(@RequestBody EmailAuthDto.findPassword emailAuthDto){
+    public String findPassword(@RequestBody EmailAuthDto.findPassword emailAuthDto) {
 
-        memberService.findPassword(emailAuthDto.getEmail(),emailAuthDto.getAuthNumber(),emailAuthDto.getNewPassword());
+        memberService.findPassword(emailAuthDto.getEmail(), emailAuthDto.getAuthNumber(), emailAuthDto.getNewPassword());
 
         return "비밀번호가 변경되었습니다.";
     }
 
     @DeleteMapping("/delete/{member-id}")
-    public ResponseEntity deleteMember(@PathVariable("member-id") @Positive long memberId){
+    public ResponseEntity deleteMember(@PathVariable("member-id") @Positive long memberId) {
         memberService.deleteMember(memberId);
-        return new ResponseEntity<>("회원 탈퇴 성공",HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.NO_CONTENT);
     }
 }

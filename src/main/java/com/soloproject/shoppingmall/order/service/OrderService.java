@@ -5,6 +5,8 @@ import com.soloproject.shoppingmall.cart.entity.CartProduct;
 import com.soloproject.shoppingmall.cart.repository.CartRepository;
 import com.soloproject.shoppingmall.exception.BusinessLogicException;
 import com.soloproject.shoppingmall.exception.ExceptionCode;
+import com.soloproject.shoppingmall.member.entity.Member;
+import com.soloproject.shoppingmall.member.service.MemberService;
 import com.soloproject.shoppingmall.order.dto.OrderPostDto;
 import com.soloproject.shoppingmall.order.dto.OrderProductDto;
 import com.soloproject.shoppingmall.order.entity.Order;
@@ -14,6 +16,9 @@ import com.soloproject.shoppingmall.order.repository.OrderRepository;
 import com.soloproject.shoppingmall.product.entity.Product;
 import com.soloproject.shoppingmall.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
+    private final MemberService memberService;
 
     public Order createOrder(Order order) {
 
@@ -50,7 +56,7 @@ public class OrderService {
 
         List<OrderProduct> orderProducts = new ArrayList<>();
 
-        for (CartProduct cartProduct : cart.getCartProducts()){
+        for (CartProduct cartProduct : cart.getCartProducts()) {
             OrderProduct orderProduct = new OrderProduct();
             Product product = cartProduct.getProduct();
 
@@ -80,7 +86,7 @@ public class OrderService {
         List<Product> products = productRepository.findAllById(productIds);
 
         int totalPrice = IntStream.range(0, quantity.size())
-                .map(i->
+                .map(i ->
                 {
                     Product product = products.get(i);
                     int price = product.getPrice();
@@ -93,5 +99,15 @@ public class OrderService {
     public Order getOrder(long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow();
         return order;
+    }
+
+    public Page<Order> getOrderList(int page,int size) {
+
+        Member loginMember = memberService.getLoginUser();
+        long memberId = loginMember.getMemberId();
+
+        PageRequest pageRequest = PageRequest.of(page,size, Sort.by("createdAt").descending());
+
+        return orderRepository.findAllByMember_MemberId(pageRequest,memberId);
     }
 }

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring",uses={ProductMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductMapper.class})
 public interface OrderMapper {
 
 
@@ -58,6 +58,8 @@ public interface OrderMapper {
 
         return orderResponseDto;
     }
+
+    List<OrderResponseDto> ordersToOrderResponseDtos(List<Order> orders);
 
 
     default List<OrderProductResponseDto> orderProductListToOrderProductResponseDtoList(List<OrderProduct> list) {
