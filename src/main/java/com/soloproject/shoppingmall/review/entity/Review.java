@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@Entity
+@Entity(name = "Reviews")
 public class Review extends Auditable {
 
     @Id

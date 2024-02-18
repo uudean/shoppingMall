@@ -40,9 +40,20 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Page<Review> getReviews(int page, int size, long productId) {
-        PageRequest pageRequest = PageRequest.of(page,size, Sort.by("createdAt").descending());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        return reviewRepository.findAllByProduct_ProductId(pageRequest,productId);
+        return reviewRepository.findAllByProduct_ProductId(pageRequest, productId);
 
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Review> getMyReviews(int page, int size) {
+
+        Member loginMember = memberService.getLoginUser();
+        long memberId = loginMember.getMemberId();
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        return reviewRepository.findAllByMember_MemberId(pageRequest, memberId);
     }
 }

@@ -29,7 +29,7 @@ public class ProductController {
     public ResponseEntity createProduct(@RequestPart ProductPostDto productPostDto,
                                         @RequestPart List<MultipartFile> images) {
 
-        Product product = productService.createProduct(productMapper.productPostDtoToProduct(productPostDto),images);
+        Product product = productService.createProduct(productMapper.productPostDtoToProduct(productPostDto), images);
         ProductResponseDto response = productMapper.productToProductResponseDto(product);
 
         return new ResponseEntity<>(new SingleResponseDto(response), HttpStatus.CREATED);
@@ -53,7 +53,6 @@ public class ProductController {
     public ResponseEntity getProduct(@PathVariable("product-id") long productId) {
 
         ProductResponseDto response = productService.getProduct(productId);
-        productService.viewCount(productId);
 
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
@@ -78,6 +77,14 @@ public class ProductController {
         List<ProductResponseDto> response = productMapper.productToProductResponseDtos(productPage.getContent());
 
         return new ResponseEntity<>(new MultiResponseDto<>((response), productPage), HttpStatus.OK);
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity getRecentWatch(@RequestBody List<Long> productIds) {
+        List<Product> recentWatch = productService.recentProducts(productIds);
+        List<ProductResponseDto> response = productMapper.productToProductResponseDtos(recentWatch);
+
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
     @DeleteMapping("/{product-id}")

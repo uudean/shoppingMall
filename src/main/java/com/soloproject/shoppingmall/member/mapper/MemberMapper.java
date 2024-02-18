@@ -3,6 +3,7 @@ package com.soloproject.shoppingmall.member.mapper;
 import com.soloproject.shoppingmall.member.dto.MemberPatchDto;
 import com.soloproject.shoppingmall.member.dto.MemberPostDto;
 import com.soloproject.shoppingmall.member.dto.MemberResponseDto;
+import com.soloproject.shoppingmall.member.dto.PasswordUpdateDto;
 import com.soloproject.shoppingmall.member.entity.Member;
 import org.mapstruct.Mapper;
 

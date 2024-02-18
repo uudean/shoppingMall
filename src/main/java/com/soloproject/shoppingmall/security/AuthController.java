@@ -3,11 +3,11 @@ package com.soloproject.shoppingmall.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -23,8 +23,9 @@ public class AuthController {
     }
 
     @PostMapping("/verify")
-    public Boolean verifyJws(HttpServletRequest request) {
-        Map<String, Object> claims = authService.verifyJws(request);
-        return claims != null;
+    public ResponseEntity verify(HttpServletRequest request){
+        boolean isVerify = authService.verify(request);
+
+        return new ResponseEntity<>(isVerify, HttpStatus.OK);
     }
 }

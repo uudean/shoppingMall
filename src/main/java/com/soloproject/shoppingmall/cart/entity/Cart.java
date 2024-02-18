@@ -29,7 +29,7 @@ public class Cart extends Auditable {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<CartProduct> cartProducts = new ArrayList<>();
 
 }

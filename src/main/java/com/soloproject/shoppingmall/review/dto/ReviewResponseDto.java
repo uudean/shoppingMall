@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ReviewResponseDto extends Auditable {
-    private long memberId;
-    private long productId;
     private long reviewId;
+    private String name;
+    private long productId;
     private String content;
 }

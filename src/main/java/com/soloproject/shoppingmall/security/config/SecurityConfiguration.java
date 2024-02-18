@@ -12,7 +12,9 @@ import com.soloproject.shoppingmall.security.jwt.JwtVerificationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -44,16 +46,16 @@ public class SecurityConfiguration {
 
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(new AntPathRequestMatcher("/member/signup/**")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/member/email/**")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/member/**")).authenticated()
-                        .requestMatchers(new AntPathRequestMatcher("/order/**")).authenticated()
-                        .requestMatchers(new AntPathRequestMatcher("/cart/**")).authenticated()
+                        .requestMatchers(HttpMethod.POST,"/member/signup/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/member/email/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,("/member/**")).hasRole("USER")
+                        .requestMatchers(HttpMethod.POST,"/order/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST,"/cart/**").hasRole("USER")
                         .anyRequest().permitAll())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(withDefaults())
+                .cors(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(logout->logout
                         .logoutUrl("/logout")
@@ -80,6 +82,9 @@ public class SecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

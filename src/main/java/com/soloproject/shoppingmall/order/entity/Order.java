@@ -28,6 +28,7 @@ public class Order extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "member_id")
+
     private Member member;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)

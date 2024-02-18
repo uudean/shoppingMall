@@ -51,6 +51,7 @@ public interface ProductMapper {
         productResponseDto.setPrice(product.getPrice());
         productResponseDto.setStock(product.getStock());
         productResponseDto.setViews(product.getViews());
+        productResponseDto.setTotalSales(product.getTotalSales());
 
         List<Image> images = product.getImages();
         List<ImageDto> imageDtos = imagesToImageDtos(images);

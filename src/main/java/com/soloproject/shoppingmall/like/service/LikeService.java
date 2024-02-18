@@ -30,15 +30,17 @@ public class LikeService {
 
         Member loginMember = memberService.getLoginUser();
 
-        List<Like> likeList = loginMember.getLikes();
+        like.setMember(loginMember);
 
-        for (int i = 0; i < likeList.size(); i++) {
-            long productId = likeList.get(i).getProductId();
-            if (productId == like.getProductId()) {
-                likeRepository.delete(like);
-            }
+        Like findLike = likeRepository.findById(loginMember.getMemberId(),like.getProductId());
+
+        if (findLike!=null){
+            likeRepository.delete(findLike);
+        }else {
+            likeRepository.save(like);
+            return like;
         }
-        return like;
+        return null;
     }
 
     // 로그인한 사용자의 좋아요 한 상품 리스트

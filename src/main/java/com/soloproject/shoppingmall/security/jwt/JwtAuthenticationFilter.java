@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setHeader("Authorization","Bearer "+accessToken);
         response.setHeader("Refresh",refreshToken);
 
-        LoginDto.Response loginResponse = new LoginDto.Response(member.getMemberId(), member.getEmail(),"Bearer : "+accessToken);
+        LoginDto.Response loginResponse = new LoginDto.Response(member.getMemberId(), member.getEmail(),"Bearer "+accessToken);
 
         Gson gson = new Gson();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -69,7 +69,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String , Object> claims = new HashMap<>();
 
         claims.put("memberId",member.getMemberId());
-        claims.put("email",member.getEmail());
+        claims.put("username",member.getEmail());
         claims.put("roles",member.getRoles());
 
         String subject = member.getEmail();
@@ -80,8 +80,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String accessToken = jwtTokenizer.generateAccessToken(claims,subject,expiration,base64EncodedSecretKey);
 
-        redisUtil.set("AccessToken : "+member.getEmail(),accessToken,jwtTokenizer.getAccessTokenExpirationMinutes());
-
         return accessToken;
     }
 
@@ -90,7 +88,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String ,Object> claims = new HashMap<>();
 
         claims.put("memberId",member.getMemberId());
-        claims.put("email",member.getEmail());
+        claims.put("username",member.getEmail());
         claims.put("roles",member.getRoles());
 
         String subject = member.getEmail();

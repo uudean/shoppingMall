@@ -45,10 +45,21 @@ public class ReviewController {
                                      @RequestParam int page,
                                      @RequestParam int size) {
 
-        Page<Review> reviewPage = reviewService.getReviews(page-1,size,productId);
+        Page<Review> reviewPage = reviewService.getReviews(page - 1, size, productId);
         List<Review> reviews = reviewPage.getContent();
         List<ReviewResponseDto> response = reviewMapper.reviewsToReviewResponseDtos(reviews);
 
-        return new ResponseEntity(new MultiResponseDto<>(response,reviewPage),HttpStatus.OK);
+        return new ResponseEntity<>(new MultiResponseDto<>(response, reviewPage), HttpStatus.OK);
+    }
+
+    @GetMapping("/myReviews")
+    public ResponseEntity getMyReviews(@RequestParam int page,
+                                       @RequestParam int size) {
+        Page<Review> reviewPage = reviewService.getMyReviews(page - 1, size);
+        List<Review> reviews = reviewPage.getContent();
+        List<ReviewResponseDto> response = reviewMapper.reviewsToReviewResponseDtos(reviews);
+
+        return new ResponseEntity<>(new MultiResponseDto<>(response, reviewPage), HttpStatus.OK);
+
     }
 }

@@ -31,7 +31,7 @@ public class RedisUtil {
 
     public Cursor<byte[]> getScanKeys(String pattern){
 
-        ScanOptions scanOptions = ScanOptions.scanOptions().match("ProductView*").build();
+        ScanOptions scanOptions = ScanOptions.scanOptions().match(pattern).build();
         Cursor<byte[]> keys = redisTemplate.getConnectionFactory().getConnection().scan(scanOptions);
 
         return keys;

@@ -1,9 +1,6 @@
 package com.soloproject.shoppingmall.member.controller;
 
-import com.soloproject.shoppingmall.member.dto.EmailAuthDto;
-import com.soloproject.shoppingmall.member.dto.MemberPatchDto;
-import com.soloproject.shoppingmall.member.dto.MemberPostDto;
-import com.soloproject.shoppingmall.member.dto.MemberResponseDto;
+import com.soloproject.shoppingmall.member.dto.*;
 import com.soloproject.shoppingmall.member.entity.Member;
 import com.soloproject.shoppingmall.member.mapper.MemberMapper;
 import com.soloproject.shoppingmall.member.service.MemberService;
@@ -56,6 +53,15 @@ public class MemberController {
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
+    @PatchMapping("/update/password/{member-id}")
+    public ResponseEntity updatePassword(@PathVariable("member-id") long memberId,
+                                         @Valid @RequestBody PasswordUpdateDto passwordUpdateDto) {
+        passwordUpdateDto.setMemberId(memberId);
+        memberService.updatePassword(passwordUpdateDto);
+
+        return new ResponseEntity<>("변경되었습니다.", HttpStatus.OK);
+    }
+
     @GetMapping("/mypage/{member-id}")
     public ResponseEntity getMember(@Valid @PathVariable("member-id") long memberId) {
         Member member = memberService.findMember(memberId);
@@ -65,11 +71,11 @@ public class MemberController {
     }
 
     @PostMapping("/findPasword")
-    public String findPassword(@RequestBody EmailAuthDto.findPassword emailAuthDto) {
+    public ResponseEntity findPassword(@RequestBody EmailAuthDto.findPassword emailAuthDto) {
 
         memberService.findPassword(emailAuthDto.getEmail(), emailAuthDto.getAuthNumber(), emailAuthDto.getNewPassword());
 
-        return "비밀번호가 변경되었습니다.";
+        return new ResponseEntity<>("변경되었습니다.", HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{member-id}")

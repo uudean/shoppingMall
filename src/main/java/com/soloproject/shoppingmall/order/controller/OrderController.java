@@ -7,7 +7,6 @@ import com.soloproject.shoppingmall.order.mapper.OrderMapper;
 import com.soloproject.shoppingmall.order.service.OrderService;
 import com.soloproject.shoppingmall.response.MultiResponseDto;
 import com.soloproject.shoppingmall.response.SingleResponseDto;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -43,11 +42,21 @@ public class OrderController {
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
     }
 
+    @GetMapping("/{order-id}")
+    public ResponseEntity getOrder(@PathVariable("order-id") long orderId){
+
+        Order order = orderService.getOrder(orderId);
+        OrderResponseDto response = orderMapper.orderToOrderResponseDto(order);
+
+        return new ResponseEntity<>(new SingleResponseDto<>(response),HttpStatus.OK);
+    }
+
     @GetMapping("/list")
     public ResponseEntity getOrderList(@RequestParam int page,
-                                       @RequestParam int size){
+                                       @RequestParam int size,
+                                       @RequestParam long type){
 
-        Page<Order> orderPage = orderService.getOrderList(page-1,size);
+        Page<Order> orderPage = orderService.getOrderList(page-1,size,type);
         List<OrderResponseDto> response = orderMapper.ordersToOrderResponseDtos(orderPage.getContent());
 
         return new ResponseEntity<>(new MultiResponseDto<>(response,orderPage),HttpStatus.OK);

@@ -60,7 +60,7 @@ public class Product extends Auditable {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<CartProduct> cartProducts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE},fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
     public void setOrderProduct(OrderProduct orderProduct) {

@@ -25,6 +25,7 @@ public class ProductResponseDto extends Auditable {
     private int stock;
     private long views;
     private long likeCount;
+    private long totalSales;
     private List<ImageDto> image;
 
 }

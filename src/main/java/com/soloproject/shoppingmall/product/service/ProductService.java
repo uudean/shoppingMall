@@ -3,7 +3,6 @@ package com.soloproject.shoppingmall.product.service;
 import com.soloproject.shoppingmall.exception.BusinessLogicException;
 import com.soloproject.shoppingmall.exception.ExceptionCode;
 import com.soloproject.shoppingmall.image.entity.Image;
-import com.soloproject.shoppingmall.image.repository.ImageRepository;
 import com.soloproject.shoppingmall.image.service.ImageService;
 import com.soloproject.shoppingmall.product.dto.ProductResponseDto;
 import com.soloproject.shoppingmall.product.entity.Product;
@@ -103,7 +102,7 @@ public class ProductService {
             Product product = productRepository.findById(productId).orElseThrow();
             Object value = redisUtil.get(key);
             long viewCount = Long.parseLong(value.toString());
-            product.setViews(viewCount);
+            product.setViews(viewCount+product.getViews());
 
             productRepository.save(product);
 
@@ -128,19 +127,19 @@ public class ProductService {
 
         // 최신순
         if (type == 1) {
-            return productRepository.findAllByCategory(pageRequest.withSort(Sort.by("createdAt").descending()), category);
+            return productRepository.findByCategory(pageRequest.withSort(Sort.by("createdAt").descending()), category);
         }
         // 판매량순
         else if (type == 2) {
-            return productRepository.findAllByCategory(pageRequest.withSort(Sort.by("totalSales").descending()), category);
+            return productRepository.findByCategory(pageRequest.withSort(Sort.by("totalSales").descending()), category);
         }
         // 높은 가격순
         else if (type == 3) {
-            return productRepository.findAllByCategory(pageRequest.withSort(Sort.by("price").descending()), category);
+            return productRepository.findByCategory(pageRequest.withSort(Sort.by("price").descending()), category);
         }
         // 낮은 가격순
         else if (type == 4) {
-            return productRepository.findAllByCategory(pageRequest.withSort(Sort.by("price").ascending()), category);
+            return productRepository.findByCategory(pageRequest.withSort(Sort.by("price").ascending()), category);
         }
         else throw new Exception("올바른 타입을 해야합니다.");
     }

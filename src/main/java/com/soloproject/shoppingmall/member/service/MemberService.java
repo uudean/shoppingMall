@@ -2,6 +2,7 @@ package com.soloproject.shoppingmall.member.service;
 
 import com.soloproject.shoppingmall.exception.BusinessLogicException;
 import com.soloproject.shoppingmall.exception.ExceptionCode;
+import com.soloproject.shoppingmall.member.dto.PasswordUpdateDto;
 import com.soloproject.shoppingmall.member.entity.Member;
 import com.soloproject.shoppingmall.member.repository.MemberRepository;
 import com.soloproject.shoppingmall.redis.RedisUtil;
@@ -43,13 +44,26 @@ public class MemberService {
         Member findMember = findVerifiedMember(member.getMemberId());
 
         Optional.ofNullable(member.getName()).ifPresent(findMember::setName);
-        Optional.ofNullable(member.getPassword()).ifPresent(password -> findMember.setPassword(passwordEncoder.encode(password)));
         Optional.ofNullable(member.getPhone()).ifPresent(findMember::setPhone);
         Optional.ofNullable(member.getAddress()).ifPresent(findMember::setAddress);
         Optional.ofNullable(member.getModifiedAt()).ifPresent(findMember::setModifiedAt);
-
+        Optional.ofNullable(member.getPassword()).ifPresent(password -> findMember.setPassword(passwordEncoder.encode(password)));
         return memberRepository.save(findMember);
     }
+
+    public Member updatePassword(PasswordUpdateDto passwordUpdateDto) {
+
+        Member findMember = findVerifiedMember(passwordUpdateDto.getMemberId());
+
+        boolean confirm = passwordEncoder.matches(passwordUpdateDto.getCurrentPassword(), findMember.getPassword());
+
+        if (confirm) {
+            Optional.ofNullable(passwordUpdateDto.getNewPassword()).ifPresent(newPassword -> findMember.setPassword(passwordEncoder.encode(newPassword)));
+            Optional.ofNullable(findMember.getModifiedAt()).ifPresent(findMember::setModifiedAt);
+        }
+        return memberRepository.save(findMember);
+    }
+
 
     //  회원가입 이메일 인증
     public void emailAuth(String email, int authNum) {
@@ -127,6 +141,6 @@ public class MemberService {
     }
 
     public Member getLoginUser() {
-        return memberRepository.findByEmail(AuthUtils.getAuthUser()).orElseThrow(()->new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+        return memberRepository.findByEmail(AuthUtils.getAuthUser()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
     }
 }

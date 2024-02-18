@@ -22,7 +22,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -72,6 +76,7 @@ public class OrderService {
         order.setOrderStatus(Order.OrderStatus.ORDER_REQUEST);
 
         orderRepository.save(order);
+        cartRepository.delete(cart);
 
         return order;
     }
@@ -101,13 +106,27 @@ public class OrderService {
         return order;
     }
 
-    public Page<Order> getOrderList(int page,int size) {
+    // 기간별 주문 목록 조회
+    public Page<Order> getOrderList(int page, int size, long type) {
 
         Member loginMember = memberService.getLoginUser();
         long memberId = loginMember.getMemberId();
 
-        PageRequest pageRequest = PageRequest.of(page,size, Sort.by("createdAt").descending());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        return orderRepository.findAllByMember_MemberId(pageRequest,memberId);
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = null;
+
+        if (type == 1) {
+            startDate = endDate.minusDays(7);
+        } else if (type == 2) {
+            startDate = endDate.minusMonths(1);
+        } else if (type == 3) {
+            startDate = endDate.minusMonths(3);
+        } else if (type == 4) {
+            startDate = endDate.minusYears(1);
+        }
+
+        return orderRepository.findAllByCreatedAt(pageRequest, memberId, startDate, endDate);
     }
 }
