@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LikeResponseDto extends Auditable {
-
+    private long likeId;
     private long memberId;
     private long productId;
 

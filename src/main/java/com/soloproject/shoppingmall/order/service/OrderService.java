@@ -15,6 +15,7 @@ import com.soloproject.shoppingmall.order.mapper.OrderMapper;
 import com.soloproject.shoppingmall.order.repository.OrderRepository;
 import com.soloproject.shoppingmall.product.entity.Product;
 import com.soloproject.shoppingmall.product.repository.ProductRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

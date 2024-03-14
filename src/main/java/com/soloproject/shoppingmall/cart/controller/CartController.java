@@ -22,8 +22,8 @@ public class CartController {
     private final CartMapper cartMapper;
 
     @PostMapping
-    public ResponseEntity addCart(@RequestBody CartPostDto cartPostDto) {
-        Cart cart = cartService.addProduct(cartPostDto);
+    public ResponseEntity addToCart(@RequestBody CartPostDto cartPostDto) {
+        Cart cart = cartService.addToCart(cartPostDto);
         CartResponseDto response = cartMapper.cartToCartResponseDto(cart);
 
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
@@ -37,10 +37,10 @@ public class CartController {
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{cartProduct_Id}")
-    public ResponseEntity deleteProduct(@PathVariable("cartProduct_Id") long cartProductId){
+    @DeleteMapping("/{cartProduct-id}")
+    public ResponseEntity deleteProduct(@PathVariable("cartProduct-id") long cartProductId) {
         cartService.deleteProduct(cartProductId);
-        return ResponseEntity.ok("삭제 되었습니다.");
+        return new ResponseEntity<>("삭제되었습니다", HttpStatus.NO_CONTENT);
     }
 
     @GetMapping

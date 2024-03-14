@@ -16,8 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional
@@ -29,74 +30,73 @@ public class CartService {
     private final MemberService memberService;
     private final CartProductRepository cartProductRepository;
 
-    public Cart addProduct(CartPostDto cartPostDto) {
+    @Transactional
+    public Cart addToCart(CartPostDto cartPostDto) {
 
         Member loginMember = memberService.getLoginUser();
-        // 장바구니 상품 존재 여부 확인
-        boolean isExisted = cartRepository.findCartByMember_MemberId(loginMember.getMemberId()).isPresent();
-        Product product = productRepository.findById(cartPostDto.getProductId()).orElseThrow();
 
-//      장바구니가 비어 있을 경우
-        if (!isExisted) {
-            Cart newCart = new Cart();
+        boolean isExistedCart = cartRepository.findCartByMember_MemberId(loginMember.getMemberId()).isPresent();
 
-            CartProduct newCartProduct = new CartProduct();
-            newCartProduct.setProduct(product);
-            newCartProduct.setQuantity(cartPostDto.getQuantity());
-            newCartProduct.setCart(newCart);
-            cartProductRepository.save(newCartProduct);
+        Product product = productRepository.findById(cartPostDto.getProductId()).orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.PRODUCT_NOT_FOUND));
+        // 장바구니가 비어있는 경우
+        if (!isExistedCart) {
 
-            newCart.setMember(loginMember);
+            Cart cart = new Cart();
 
-            int totalPrice = product.getPrice() * cartPostDto.getQuantity();
+            CartProduct cartProduct = new CartProduct();
+            cartProduct.setProduct(product);
+            cartProduct.setQuantity(cartPostDto.getQuantity());
+            cartProduct.setCart(cart);
 
-            newCart.setTotalPrice(totalPrice);
+            cart.setCartProducts(Collections.singletonList(cartProduct));
 
-            cartRepository.save(newCart);
+            int totalPrice = product.getPrice() * cartProduct.getQuantity();
+            cart.setMember(loginMember);
+            cart.setTotalPrice(totalPrice);
 
-            return newCart;
-//            장바구니에 상품이 존재하는 경우
+            cartRepository.save(cart);
+
+            return cart;
         } else {
-            Cart cart = cartRepository.findCartByMember_MemberId(loginMember.getMemberId())
-                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CART_EMPTY));
 
-            List<CartProduct> cartProducts = cart.getCartProducts();
+            Cart existCart = loginMember.getCart();
 
-            Optional<CartProduct> existProductInCartProduct = cartProducts.stream()
-                    .filter(cartProduct -> cartProduct.getProduct().getProductId() == cartPostDto.getProductId())
-                    .findFirst();
+            CartProduct existCartProduct = cartProductRepository.findCartProduct(existCart.getCartId(), cartPostDto.getProductId());
+            // 장바구니에 상품이 존재하지만 다른 상품을 추가할 경우
+            if (existCartProduct == null) {
 
-//            장바구니에 존재하는 상품을 장바구니에 담는경우
-            if (existProductInCartProduct.isPresent()) {
-                CartProduct cartProduct = existProductInCartProduct.get();
-                int newQuantity = cartProduct.getQuantity() + cartPostDto.getQuantity();
-
-                cartProduct.setQuantity(newQuantity);
-                cartProductRepository.save(cartProduct);
-
-                int newTotalPrice = calculateTotalPrice(cart.getCartId());
-
-                cart.setTotalPrice(newTotalPrice);
-                cartRepository.save(cart);
-
-                return cart;
-//             새로운 상품을 장바구니에 담는 경우
-            } else {
                 CartProduct newCartProduct = new CartProduct();
-                newCartProduct.setProduct(product);
                 newCartProduct.setQuantity(cartPostDto.getQuantity());
-                newCartProduct.setCart(cart);
-                cartProductRepository.save(newCartProduct);
+                newCartProduct.setProduct(product);
+                newCartProduct.setCart(existCart);
 
-                int newTotalPrice = calculateTotalPrice(cart.getCartId());
+                int totalPrice = calculateTotalPrice(existCart.getCartId());
+                existCart.setTotalPrice(totalPrice + (product.getPrice() * cartPostDto.getQuantity()));
 
-                cart.setTotalPrice(newTotalPrice);
+                List<CartProduct> cartProducts = new ArrayList<>(existCart.getCartProducts());
+                cartProducts.add(newCartProduct);
+                existCart.setCartProducts(cartProducts);
 
-                cartRepository.save(cart);
+                cartRepository.save(existCart);
 
-                return cart;
+                return existCart;
+                // 장바구니에 이미 추가된 상품을 추가한 경우
+            } else {
+                existCartProduct.setQuantity(existCartProduct.getQuantity() + cartPostDto.getQuantity());
+
+                cartProductRepository.save(existCartProduct);
+
+                int totalPrice = calculateTotalPrice(existCart.getCartId());
+                existCart.setTotalPrice(totalPrice);
+
+                cartRepository.save(existCart);
+
+                return existCart;
             }
+
         }
+
     }
 
     //  회원 장바구니 조회
@@ -114,41 +114,37 @@ public class CartService {
     public Cart updateQuantity(CartPatchDto cartPatchDto) {
 
         Member loginMember = memberService.getLoginUser();
-        Cart cart = cartRepository.findCartByMember_MemberId(loginMember.getMemberId())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CART_EMPTY));
 
-        List<CartProduct> cartProducts = cart.getCartProducts();
+        Cart cart = loginMember.getCart();
 
-        Optional<CartProduct> existProductInCartProduct = cartProducts.stream()
-                .filter(cartProduct -> cartProduct.getProduct().getProductId() == cartPatchDto.getProductId())
-                .findFirst();
+        CartProduct findCartProduct = cartProductRepository.findCartProduct(cart.getCartId(), cartPatchDto.getProductId());
 
-        CartProduct cartProduct = existProductInCartProduct.get();
-
-        cartProduct.setQuantity(cartPatchDto.getQuantity());
+        findCartProduct.setQuantity(cartPatchDto.getQuantity());
+        cartProductRepository.save(findCartProduct);
 
         int newTotalPrice = calculateTotalPrice(cart.getCartId());
-
         cart.setTotalPrice(newTotalPrice);
-
-        cartProductRepository.save(cartProduct);
         cartRepository.save(cart);
 
         return cart;
+
     }
 
     //    장바구니 상품 삭제
     public void deleteProduct(long cartProductId) {
 
+        Member loginMember = memberService.getLoginUser();
+        Cart cart = loginMember.getCart();
+
         CartProduct cartProduct = cartProductRepository.findById(cartProductId).orElseThrow();
-        Cart cart = cartProduct.getCart();
+        cartProduct.setCart(null);
+        cart.getCartProducts().remove(cartProduct);
+
+        int totalPrice = calculateTotalPrice(cart.getCartId());
+        cart.setTotalPrice(totalPrice);
+        cartRepository.save(cart);
 
         cartProductRepository.delete(cartProduct);
-
-        int newTotalPrice = calculateTotalPrice(cart.getCartId());
-
-        cart.setTotalPrice(newTotalPrice);
-        cartRepository.save(cart);
     }
 
     public int calculateTotalPrice(long cartId) {

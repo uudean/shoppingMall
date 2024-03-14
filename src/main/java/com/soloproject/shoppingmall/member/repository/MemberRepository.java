@@ -8,7 +8,4 @@ import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByEmail(String email);
-
-    @Query("SELECT COUNT(m) FROM Member m where m.email = :email")
-    Long existEmail(String email);
 }

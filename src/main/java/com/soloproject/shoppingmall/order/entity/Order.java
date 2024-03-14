@@ -31,19 +31,19 @@ public class Order extends Auditable {
 
     private Member member;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
-    public void setMember(Member member) {
-        this.member = member;
-        if (!this.member.getOrders().contains(this)) {
-            this.member.getOrders().add(this);
-        }
-    }
+//    public void setMember(Member member) {
+//        this.member = member;
+//        if (!this.member.getOrders().contains(this)) {
+//            this.member.getOrders().add(this);
+//        }
+//    }
 
-    public enum OrderStatus{
-        ORDER_REQUEST(1,"결제 대기중"),
-        ORDER_COMPLETE(2,"결제 완료");
+    public enum OrderStatus {
+        ORDER_REQUEST(1, "결제 대기중"),
+        ORDER_COMPLETE(2, "결제 완료");
 
         @Getter
         private int step;

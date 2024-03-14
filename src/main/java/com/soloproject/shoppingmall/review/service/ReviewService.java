@@ -15,6 +15,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Transactional
 @Service
@@ -31,6 +34,20 @@ public class ReviewService {
         review.setProduct(product);
         reviewRepository.save(review);
         return review;
+    }
+
+    public Review updateReview(Review review) {
+
+        Member logingMember = memberService.getLoginUser();
+        Review findReview = reviewRepository.findById(review.getReviewId()).orElseThrow();
+
+        if (findReview.getMember().getMemberId() == logingMember.getMemberId()) {
+
+            Optional.ofNullable(review.getContent()).ifPresent(findReview::setContent);
+            Optional.ofNullable(review.getModifiedAt()).ifPresent(localDateTime -> findReview.setModifiedAt(LocalDateTime.now()));
+            return reviewRepository.save(findReview);
+
+        } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
     }
 
     @Transactional(readOnly = true)
@@ -55,5 +72,18 @@ public class ReviewService {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         return reviewRepository.findAllByMember_MemberId(pageRequest, memberId);
+    }
+
+    public void deleteReview(long reviewId) {
+
+        Member loginMember = memberService.getLoginUser();
+        Review findReview = reviewRepository.findById(reviewId).orElseThrow();
+
+        if (findReview.getMember() == loginMember) {
+//            findReview.setProduct(null);
+//            findReview.setMember(null);
+            reviewRepository.delete(findReview);
+        } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+
     }
 }

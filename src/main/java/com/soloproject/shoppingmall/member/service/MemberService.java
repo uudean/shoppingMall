@@ -51,6 +51,7 @@ public class MemberService {
         return memberRepository.save(findMember);
     }
 
+    // 비밀번호 변경
     public Member updatePassword(PasswordUpdateDto passwordUpdateDto) {
 
         Member findMember = findVerifiedMember(passwordUpdateDto.getMemberId());
@@ -60,7 +61,7 @@ public class MemberService {
         if (confirm) {
             Optional.ofNullable(passwordUpdateDto.getNewPassword()).ifPresent(newPassword -> findMember.setPassword(passwordEncoder.encode(newPassword)));
             Optional.ofNullable(findMember.getModifiedAt()).ifPresent(findMember::setModifiedAt);
-        }
+        }else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
         return memberRepository.save(findMember);
     }
 
@@ -103,7 +104,7 @@ public class MemberService {
     }
 
     // 존재하는 이메일인지 확인
-    private void verifyExistEmail(String email) {
+    public void verifyExistEmail(String email) {
 
         Optional<Member> findMember = memberRepository.findByEmail(email);
 

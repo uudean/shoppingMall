@@ -2,6 +2,7 @@ package com.soloproject.shoppingmall.review.controller;
 
 import com.soloproject.shoppingmall.response.MultiResponseDto;
 import com.soloproject.shoppingmall.response.SingleResponseDto;
+import com.soloproject.shoppingmall.review.dto.ReviewPatchDto;
 import com.soloproject.shoppingmall.review.dto.ReviewPostDto;
 import com.soloproject.shoppingmall.review.dto.ReviewResponseDto;
 import com.soloproject.shoppingmall.review.entity.Review;
@@ -29,6 +30,16 @@ public class ReviewController {
         ReviewResponseDto response = reviewMapper.reviewToReviewResponseDto(review);
 
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/{review-id}")
+    public ResponseEntity updateReview(@RequestBody ReviewPatchDto reviewPatchDto,
+                                       @PathVariable("review-id") long reviewId) {
+        reviewPatchDto.setReviewId(reviewId);
+        Review review = reviewService.updateReview(reviewMapper.reviewPatchDtoToReview(reviewPatchDto));
+        ReviewResponseDto response = reviewMapper.reviewToReviewResponseDto(review);
+
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
     @GetMapping("/{review-id}")
@@ -61,5 +72,12 @@ public class ReviewController {
 
         return new ResponseEntity<>(new MultiResponseDto<>(response, reviewPage), HttpStatus.OK);
 
+    }
+
+    @DeleteMapping("/{review-id}")
+    public ResponseEntity deleteReview(@PathVariable("review-id") long reviewId) {
+        reviewService.deleteReview(reviewId);
+
+        return new ResponseEntity<>("삭제 되었습니다.", HttpStatus.NO_CONTENT);
     }
 }

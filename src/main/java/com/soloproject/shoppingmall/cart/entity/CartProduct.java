@@ -30,17 +30,17 @@ public class CartProduct extends Auditable {
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    public void setCart(Cart cart) {
-        this.cart = cart;
-        if (!this.cart.getCartProducts().contains(this)) {
-            this.cart.getCartProducts().add(this);
-        }
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-        if (!this.product.getCartProducts().contains(this)) {
-            this.product.getCartProducts().add(this);
-        }
-    }
+//    public void setCart(Cart cart) {
+//        this.cart = cart;
+//        if (!this.cart.getCartProducts().contains(this)) {
+//            this.cart.getCartProducts().add(this);
+//        }
+//    }
+//
+//    public void setProduct(Product product) {
+//        this.product = product;
+//        if (!this.product.getCartProducts().contains(this)) {
+//            this.product.getCartProducts().add(this);
+//        }
+//    }
 }

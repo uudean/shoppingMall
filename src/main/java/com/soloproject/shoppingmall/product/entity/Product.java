@@ -49,7 +49,7 @@ public class Product extends Auditable {
     @Enumerated(EnumType.STRING)
     private Category category;
 
-    @OneToMany(mappedBy = "product",cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     private List<Image> images = new ArrayList<>();
 
     @JsonIgnore
@@ -57,10 +57,10 @@ public class Product extends Auditable {
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartProduct> cartProducts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE},fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
     public void setOrderProduct(OrderProduct orderProduct) {
