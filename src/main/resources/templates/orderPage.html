@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 페이지</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .transparent-border {
+            border-color: transparent;
+        }
+        .container{
+            margin-top: 56px;
+            padding-top: 56px;
+        }
+        .list-group-item {
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: .25rem;
+            padding: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<nav th:include="navbar.html"></nav>
+<div class="container">
+    <h1>Order</h1>
+    <div id="memberDetails">
+        <h5>주문자 정보</h5>
+    </div>
+    <br>
+    <div id="orderDetails">
+        <h5>상품 정보</h5>
+    </div>
+    <div id="totalPriceContainer"></div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        const accessToken = localStorage.getItem("accessToken");
+
+        $.ajax({
+                url: '/cart',
+                type: 'GET',
+                headers: {
+                    Authorization: accessToken
+                },
+                dataType: 'json',
+                success: function (response) {
+
+                        const orderDetails = $('#orderDetails');
+                        const memberDetails = $('#memberDetails');
+                        const totalPriceContainer = $('#totalPriceContainer');
+                        console.log(response);
+                        const cartProducts = response.data.cartProducts;
+
+                        getMemberInfo(1, function (memberInfo) {
+                            let listMemberHtml = '<li class="list-group-item">';
+                            listMemberHtml += '<div class="row">';
+                            listMemberHtml += '<div class="col" id="username"><strong>이름      </strong> ' + memberInfo.name + '</div>';
+                            listMemberHtml += '</div>';
+                            listMemberHtml += '<div class="row">';
+                            listMemberHtml += '<div class="col" id="phone"><strong>휴대폰번호      </strong> ' + memberInfo.phone + '</div>';
+                            listMemberHtml += '</div>';
+                            listMemberHtml += '<div class="row">';
+                            listMemberHtml += '<div class="col" id="address"><strong>주소      </strong> ' + memberInfo.address + '</div>';
+                            listMemberHtml += '</div>';
+                            listMemberHtml += '</li>';
+                            memberDetails.append(listMemberHtml);
+                        })
+
+                        for (var i = 0; i < cartProducts.length; i++) {
+
+                            const product = cartProducts[i];
+                            if (product && product.productId) {
+                                const productId = product.productId;
+
+                                getProductInfo(productId, function (productInfo) {
+                                    let listItemHtml = '<li class="list-group-item">';
+                                    listItemHtml += '<div class="row">';
+                                    listItemHtml += '<div class="col" style="margin: auto"><img src="' + productInfo.image[0].url + '" alt="' + productInfo.name + '" style="max-width: 100px; max-height: 120px;"></div>';
+                                    listItemHtml += '<div class="col" style="margin: auto">' + productInfo.name + '</div>';
+                                    listItemHtml += '<div class="col" style="margin: auto">' + product.quantity + '</div>';
+                                    listItemHtml += '<div class="col" style="margin: auto">' + productInfo.price * product.quantity + ' 원</div>';
+                                    listItemHtml += '</div>';
+
+                                    orderDetails.append(listItemHtml);
+
+                                });
+                            }
+                        }
+                        let totalPriceHtml = '<li class="list-group-item transparent-border">';
+                        totalPriceHtml += '<div class="row justify-content-between">';
+                        totalPriceHtml += '<div class="col text-right"><strong>최종 결제 금액</strong></div>';
+                        totalPriceHtml += '<div class="col-4 text-right" id="totalPrice">' + response.data.totalPrice + ' 원</div>';
+
+                        orderDetails.after(totalPriceHtml);
+
+                        let placeOrderButtonHtml = '<div id="placeOrderButtonContainer" class="mt-4">';
+                        placeOrderButtonHtml += '<div class="row mt-4">';
+                        placeOrderButtonHtml += '<div class="col text-center">';
+                        placeOrderButtonHtml += '<button type="button" class="btn btn-primary" onclick="requestPay('+response.data.cartId+')">결제하기</button>';
+                        placeOrderButtonHtml += '</div>';
+                        totalPriceContainer.append(placeOrderButtonHtml);
+
+                }
+            }
+        )
+    })
+
+    function getMemberInfo(memberId, callback) {
+        const accessToken = localStorage.getItem("accessToken");
+        $.ajax({
+            url: '/member/mypage/' + memberId,
+            headers: {
+                Authorization: accessToken
+            },
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                var memberInfo = response.data;
+                callback(memberInfo);
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr);
+                console.error(error);
+            }
+        })
+    }
+
+    function getProductInfo(productId, callback) {
+        $.ajax({
+            url: '/product/' + productId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                var productInfo = response.data;
+                callback(productInfo);
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr);
+                console.error(error);
+            }
+        });
+    }
+
+    function requestPay(cartId) {
+        const username = $('#username').text().trim().split("      ")[1];
+        const phone = $('#phone').text().trim().split("      ")[1];
+        const totalPrice = $('#totalPrice').text().trim().split(" ")[0];
+        const email = "swj4545@naver.com";
+        const merchant_uid = Math.floor(Math.random() * 1000000) + 1;
+        console.log(username, phone, totalPrice);
+
+        IMP.init("imp00567352");
+
+        IMP.request_pay({
+                pg: "kakaopay.TC0ONETIME",
+                pay_method: "card",
+                merchant_uid: merchant_uid,
+                name: "test",
+                amount: totalPrice * 1,
+                buyer_email: email,
+                buyer_name: username,
+                buyer_addr: "서울시 노원구",
+                buyer_tel: phone
+            },
+            function (rsp) {
+
+                const accessToken = localStorage.getItem("accessToken");
+
+                if (rsp.success) {
+                    console.log(rsp);
+                    alert("결제완료")
+
+                    $.ajax({
+                        url: '/order/cart/'+ cartId,
+                        headers:{
+                            Authorization: accessToken
+                        },
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function (response){
+                            window.location.href='/payment?orderId='+encodeURIComponent(response.data.orderId)
+                        }
+                    })
+
+                } else {
+                    console.log(rsp);
+                    alert("결제 도중 오류가 발생하였습니다. 다시 시도해 주세요.")
+                }
+            })
+    }
+
+</script>
+
+</body>
+</html>

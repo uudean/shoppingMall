@@ -1,0 +1,383 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding-top: 48px;
+            width: 200px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #f8f9fa;
+            color: black;
+        }
+
+        .main-content {
+            margin-top: 56px;
+            margin-left: 200px;
+            padding-top: 56px;
+        }
+
+        .list-group-item {
+            background-color: #fff;
+            border: 1px solid rgba(0, 0, 0, .125);
+            border-radius: .25rem;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<nav th:include="navbar.html"></nav>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: black" th:href="@{/mypage/orderList}">주문 내역 조회</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: black" th:href="@{/mypage/like}">좋아요</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: black" th:href="@{/mypage/review}">구매후기</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: black" th:href="@{/mypage/update}">회원 정보 수정</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4 main-content">
+            <h2>리뷰 작성</h2>
+            리뷰작성은 1개월 이내에만 가능합니다.
+            <div id="orderList">
+            </div>
+            <div class="text-center mt-3" id="pagination">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                    </ul>
+                </nav>
+            </div>
+            <h2>리뷰 관리</h2>
+            <div id="reviewList"></div>
+            <div class="text-center mt-3" id="pagination2">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                    </ul>
+                </nav>
+            </div>
+        </main>
+    </div>
+</div>
+<div class="modal fade" id="writeReviewModal" tabindex="-1" role="dialog" aria-labelledby="writeReviewModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="writeReviewModalLabel">리뷰 작성</h5>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <div class="form-group">
+                        <label for="reviewContent">리뷰 내용</label>
+                        <textarea class="form-control" id="reviewContent" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeModalButton">닫기</button>
+                <button type="button" class="btn btn-primary" id="submitReviewBtn">작성 완료</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="updateReviewModal" tabindex="-1" role="dialog" aria-labelledby="writeReviewModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateReviewModalLabel">리뷰 수정</h5>
+            </div>
+            <div class="modal-body">
+                <form id="updateReviewForm">
+                    <div class="form-group">
+                        <label for="reviewContent">리뷰 내용</label>
+                        <textarea class="form-control" id="updateReviewContent" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeModalButton2">닫기</button>
+                <button type="button" class="btn btn-primary" id="updateReviewBtn">수정 완료</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const pageNumber = 1;
+        const accessToken = localStorage.getItem("accessToken");
+        getOrderList(pageNumber);
+        getReviewList(pageNumber);
+
+        function getOrderList(pageNumber) {
+            $('#orderList').empty();
+            $.ajax({
+                url: '/order/list',
+                type: 'GET',
+                headers: {
+                    Authorization: accessToken
+                },
+                dataType: 'json',
+                data: {
+                    page: pageNumber,
+                    size: 10,
+                    type: 2
+                },
+                success: function (response) {
+                    console.log(response);
+                    const orderList = $('#orderList');
+                    const orders = response.data;
+
+                    for (var i = 0; i < orders.length; i++) {
+                        const order = orders[i];
+                        const orderProducts = order.orderProducts;
+                        console.log(orderProducts);
+
+                        for (var j = 0; j < orderProducts.length; j++) {
+                            getProductInfo(orderProducts[j].productId, function (productInfo) {
+                                let orderItemHtml = '<li class="list-group-item">';
+                                orderItemHtml += '<div class="row">';
+                                orderItemHtml += '<div class="col" style="margin: auto"><img src="' + productInfo.image[0].url + '" alt="' + productInfo.name + '" style="max-width: 100px; max-height: 120px;"></div>'
+                                orderItemHtml += '<div class="col" style="margin: auto">' + productInfo.name + '</div>';
+                                orderItemHtml += '<div class="col" style="margin: auto">' + order.createdAt + '</div>'
+                                orderItemHtml += '<div class="col" style="margin: auto"><button type="button" class="btn btn-danger btn-sm ml-2" data-product-id="' + productInfo.productId + '" id="writeReview">리뷰 작성</button></div>';
+                                orderList.append(orderItemHtml);
+                            })
+                        }
+                    }
+                    const pageInfo = response.pageInfo;
+                    renderPagination(pageInfo.totalElement, pageInfo.totalPage);
+                }
+            })
+        }
+        async function getReviewList(pageNumber) {
+            $('#reviewList').empty();
+            $.ajax({
+                url: '/review/myReviews',
+                type: 'GET',
+                headers: {
+                    Authorization: accessToken
+                },
+                data: {
+                    page: pageNumber,
+                    size: 5
+                },
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                    const reviewList = $('#reviewList');
+                    for (var i = 0; i < response.data.length; i++) {
+                        (function (index) {
+                            getProductInfo(response.data[index].productId, function (productInfo) {
+                                const review = response.data[index];
+                                renderReviewItem(productInfo, review);
+                            });
+                        })(i);
+                    }
+                    const pageInfo = response.pageInfo;
+                    renderPagination2(pageInfo.totalElement, pageInfo.totalPage);
+                }
+            })
+        }
+        function renderReviewItem(productInfo, review) {
+            const reviewItemHtml = '<li class="list-group-item">' +
+                '<div class="row">' +
+                '<div class="col" style="margin: auto"><img src="' + productInfo.image[0].url + '" alt="' + productInfo.name + '" style="max-width: 100px; max-height: 120px;"></div>' +
+                '<div class="col" style="margin: auto">' + review.content + '</div>' +
+                '<div class="col" style="margin: auto">' + review.createdAt + '</div>' +
+                '<div class="col" style="margin: auto"><button type="button" class="btn btn-danger btn-sm ml-2" data-product-id="' + productInfo.productId + '" id="updateReview">수정</button></div>' +
+                '<div class="col" style="margin: auto"><button type="button" class="btn btn-danger btn-sm ml-2" data-product-id="' + productInfo.productId + '" id="deleteReview">삭제</button></div>' +
+                '</div>' +
+                '</li>';
+            $('#reviewList').append(reviewItemHtml);
+        }
+
+        function getProductInfo(productId, callback) {
+            $.ajax({
+                url: '/product/' + productId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    var productInfo = response.data;
+                    callback(productInfo);
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+                    console.error(error);
+                }
+            });
+        }
+
+        function renderPagination(totalElements, totalPages) {
+            const pagination = $('#pagination').find('ul.pagination');
+            pagination.empty();
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageNumber = i;
+                const pageLink = $('<span>', {
+                    class: 'page-link',
+                    href: '#',
+                    text: i,
+                    click: function () {
+                        getOrderList(pageNumber);
+                    }
+                });
+
+                const pageItem = $('<li>', {class: 'page-item'}).append(pageLink);
+                pagination.append(pageItem);
+            }
+        }
+
+        function renderPagination2(totalElements, totalPages) {
+            const pagination = $('#pagination2').find('ul.pagination');
+            pagination.empty();
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageNumber = i;
+                const pageLink = $('<span>', {
+                    class: 'page-link',
+                    href: '#',
+                    text: i,
+                    click: function () {
+                        getReviewList(pageNumber);
+                    }
+                });
+
+                const pageItem = $('<li>', {class: 'page-item'}).append(pageLink);
+                pagination.append(pageItem);
+            }
+        }
+
+        $(document).on('click', '#writeReview', function () {
+            const productId = $(this).data('product-id');
+
+            $('#writeReviewModal').modal('show');
+            $('#writeReviewModal').data('product-id', productId);
+        })
+
+        $(document).on('click', '#updateReview', function () {
+            const productId = $(this).data('product-id');
+            const reviewContent = $(this).closest('.list-group-item').find('.review-content').text(); // 수정된 부분
+
+            $('#updateReviewContent').val(reviewContent);
+            $('#updateReviewModal').modal('show');
+            $('#updateReviewModal').data('product-id', productId);
+        })
+
+        $(document).on('click', '#submitReviewBtn', function () {
+            const productId = $('#writeReviewModal').data('product-id');
+            const reviewContent = $('#reviewContent').val();
+            const accessToken = localStorage.getItem("accessToken");
+
+            const reviewPostDto = {
+                content: reviewContent
+            }
+
+            $.ajax({
+                url: '/review/' + productId,
+                type: 'POST',
+                headers: {
+                    Authorization: accessToken
+                },
+                data: JSON.stringify(reviewPostDto),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function () {
+                    $('#writeReviewModal').modal('hide');
+                    alert("작성되었습니다.")
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            })
+        })
+
+        $(document).on('click', '#closeModalButton', function () {
+            $('#writeReviewModal').modal('hide');
+        })
+        $(document).on('click', '#closeModalButton2', function () {
+            $('#updateReviewModal').modal('hide');
+        })
+
+        $(document).on('click', '#deleteReview', function () {
+            const productId = $(this).data('product-id');
+            $.ajax({
+                url: '/review/' + productId,
+                type: 'DELETE',
+                headers: {
+                    Authorization: accessToken
+                },
+                success: function () {
+                    alert("삭제 되었습니다.")
+                }, error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            })
+        })
+
+        $(document).on('click', '#updateReviewBtn', function () {
+            const productId = $('#updateReviewModal').data('product-id');
+            const reviewContent = $(this).data('review-content');
+            const accessToken = localStorage.getItem("accessToken");
+
+            const reviewPatchDto = {
+                content: reviewContent
+            }
+
+            $.ajax({
+                url: '/review/' + productId,
+                type: 'PATCH',
+                headers: {
+                    Authorization: accessToken
+                },
+                data: JSON.stringify(reviewPatchDto),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function () {
+                    $('#updateReviewModal').modal('hide');
+                    alert("수정 되었습니다.")
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            })
+        })
+    })
+</script>
+</html>

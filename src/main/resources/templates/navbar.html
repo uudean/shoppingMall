@@ -1,0 +1,148 @@
+<!-- navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <style>
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
+            padding: 10px 20px;
+            border-radius: 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: black;
+            font-weight: bold;
+        }
+
+        .navbar-nav {
+            margin-left: auto;
+        }
+
+        .navbar-nav .nav-item {
+            margin-right: 10px;
+        }
+
+        .navbar-nav .nav-link {
+            color: #212529;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #0056b3;
+        }
+
+    </style>
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/main}">ShoppingMall</a>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/productList(page=1,size=9,category='OUTER',type=1)}">Outer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/productList(page=1,size=9,category='TOP',type=1)}">Top</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/productList(page=1,size=9,category='BOTTOM',type=1)}">Bottom</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/productList(page=1,size=9,category='SHOES',type=1)}">Shoes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/productList(page=1,size=9,category='ACC',type=1)}">ACC</a>
+            </li>
+        </ul>
+        <div class="d-flex">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/loginPage}" id="login">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/signup}" id="signup">Signup</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/mypage/orderList}" id="mypage">MyPage</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/cartList}" id="cart">Cart</a>
+                </li>
+                <a class="nav-link" href="#" id="logout">Logout</a>
+                <li class="nav-item">
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<script>
+    $(document).ready(function () {
+
+
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+        $.ajax({
+            url: '/auth/verify',
+            type: 'POST',
+            headers: {
+                Authorization: accessToken
+            },
+            dataType: 'json',
+            success: function () {
+                $('#login').hide();
+                $('#signup').hide();
+                $('#logout').show();
+                $('#mypage').show();
+                $('#cart').show();
+            },
+            error: function () {
+
+                $.ajax({
+                    url: '/auth/reissue',
+                    type: 'POST',
+                    headers: {
+                        Refresh: refreshToken
+                    },
+                    dataType: 'text',
+                    success: function (data, status, jqXHR) {
+                        const accessToken = jqXHR.getResponseHeader('Authorization');
+                        localStorage.setItem("accessToken", accessToken);
+
+                        $('#login').hide();
+                        $('#signup').hide();
+                        $('#logout').show();
+                        $('#mypage').show();
+                        $('#cart').show();
+                        window.location.reload();
+                    },
+                    error: function (){
+                        localStorage.removeItem("current_user");
+                        $('#login').show();
+                        $('#signup').show();
+                        $('#logout').hide();
+                        $('#mypage').hide();
+                        $('#cart').hide();
+                    }
+                })
+            }
+        })
+
+
+    })
+
+
+    $("#logout").click(function () {
+        $.ajax({
+            url: '/logout',
+            type: 'POST',
+            success: function () {
+                alert("로그아웃 되었습니다.");
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('current_user');
+                window.location.reload();
+            }
+        });
+    })
+
+</script>
